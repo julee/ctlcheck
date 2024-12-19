@@ -59,11 +59,13 @@ func (ctl *AppleCTL) Fetch() error {
 		return nil // no update
 	}
 	ctl.PublishedDate = date
-	nodeLink := htmlquery.FindOne(doc, "//h2[text()='Current Trust Store']/following-sibling::*//a")
+	nodeLink := htmlquery.FindOne(doc, "//h2[text()='Current Root Store']/following-sibling::*//a")
 	if nodeLink == nil {
 		return fmt.Errorf("can not find apple publish link")
 	}
 	link := htmlquery.SelectAttr(nodeLink, "href") // link to latest url
+	link = "https://support.apple.com" + link
+	fmt.Println("link", link)
 	return ctl.fetchData(link)
 }
 
@@ -72,7 +74,7 @@ func (ctl *AppleCTL) fetchData(link string) error {
 	if err != nil {
 		return err
 	}
-	xpathTrusted := "//h2[@id='trusted' or text()='Trusted Certificates' or text()='Trusted certificates']/following-sibling::div[1]//table"
+	xpathTrusted := "//h2[@id='Root' or text()='Included Root CA Certificates' or text()='Trusted certificates']/following-sibling::div[1]//table"
 	rows := parseTable(page, fmt.Sprintf("%s//th", xpathTrusted), fmt.Sprintf("%s//tr[position()>1]", xpathTrusted))
 	ctl.Trusted = extractEntrys(rows)
 	if len(ctl.Trusted) == 0 {
